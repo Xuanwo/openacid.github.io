@@ -175,9 +175,58 @@ c1c2 → c1
 c1c2 → c1c3 → c3
 
 
+-   3地 4副本
+
+    将 joint 的 membership 配置视为一种常规
+
+
 -   hierarchical quorum
-    
-    abc → [abc, def, ghi] → 
+
+    majority([
+        majority(abc),
+        majority(def),
+        majority(ghi),
+    ])
+
+    这时9节点中最多允许掉5个节点,
+    即ab, de或者就可以提供服务.
+    相比9节点的majority 只能掉4个节点, 允许更多的宕机
+    但并没有提升可用性, 参考:
+
+    之所以设计hierarchical quorum,
+    是因为mojority的最大可用性来自于一个假设:
+    节点的宕机都是独立事件, 不相关的.
+    这时majority 才可以提供最大可用性.
+
+    但在服务部署中, 很可能机器宕机是相关的
+    例如部署在一个机架上的3个服务器, 可能因为机架故障一起宕机,
+    或者一个机房出口故障会导致整个机房下线.
+
+    这时就需要调整quorum, 允许更多宕机来提升某个场景中的可用性.
+
+    例如在3*3的这个例子中,
+    假如abc所在机房宕机了.另外2个机房还有6个服务器,
+    再宕机2个就挂了
+
+    如果用hierarchical, 每个机房允许各宕机1个.
+    宕机2个机器导致服务不可用的几率降低了.
+    (单机房掉2个才挂服务)
+
+
+    majority(abc)
+    → majority([
+        majority(abc),
+        majority(def),
+    ])
+    → majority([
+        majority(abc),
+        majority(def),
+        majority(ghi),
+    ])
+    → 
+
+zookeeper 提供了 hierarchical quorum 支持,
+但zk不支持成员变更, 虽然可以不停的更改配置重启服务来实现自(己)动(手)成员变更.
 
 
 
